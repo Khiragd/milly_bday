@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retro Pink Nintendo 64 Emulator</title>
+  <style>
+    @import url('https://fonts.cdnjs.cloudflare.com/ajax/libs/pixelicious/1.0.6/pixelicious.min.css');
+    
+    body {
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #ff66b2;
+      background-image: 
+        linear-gradient(45deg, #ff007f 25%, transparent 25%),
+        linear-gradient(-45deg, #ff007f 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #ff007f 75%),
+        linear-gradient(-45deg, transparent 75%, #ff007f 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      color: white;
+      text-shadow: 2px 2px 0 #ff007f;
+    }
+    
+    .container {
+      max-width: 800px;
+      width: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    .n64-console {
+      background-color: #ffb6c1;
+      border: 6px solid #ff1493;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), 
+                  0 0 0 10px #ff69b4,
+                  0 0 30px rgba(255, 105, 180, 0.8);
+      position: relative;
+      margin-bottom: 30px;
+    }
+    
+    .console-top {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 
+        3px 3px 0 #ff1493,
+        -3px -3px 0 #ff1493,
+        3px -3px 0 #ff1493,
+        -3px 3px 0 #ff1493,
+        0 0 10px #ff007f;
+      letter-spacing: 2px;
+      transform: rotate(-2deg);
+    }
+    
+    .power-button {
+      width: 25px;
+      height: 25px;
+      background-color: #ff1493;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.7), 
+                  inset 0 0 5px rgba(255, 255, 255, 0.7);
+      border: 3px solid white;
+    }
+    
+    .screen {
+      background-color: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 4/3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8), 
+                  0 0 15px rgba(255, 20, 147, 0.7);
+      border: 4px solid #ff69b4;
+    }
+    
+    .video-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    video {
+      max-width: 100%;
+      max-height: 100%;
+      display: none;
+    }
+    
+    .start-message {
+      color: #00ff9f;
+      font-size: 18px;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+      text-shadow: 2px 2px 0 #00804f, 0 0 10px #00ff9f;
+      animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+    
+    .control-button {
+      width: 60px;
+      height: 60px;
+      background-color: #ff69b4;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+      box-shadow: 0 5px 0 #ff1493, 0 0 10px rgba(255, 20, 147, 0.7);
+      color: white;
+      text-shadow: 1px 1px 0 #ff1493;
+      border: 2px solid white;
+    }
+    
+    .control-button:hover {
+      background-color: #ff8dc6;
+    }
+    
+    .control-button:active {
+      box-shadow: 0 2px 0 #ff1493;
+      transform: translateY(3px);
+    }
+    
+    .play-button {
+      background-color: #ff1493;
+      color: white;
+      box-shadow: 0 5px 0 #c71585, 0 0 10px rgba(255, 20, 147, 0.7);
+      border: 2px solid white;
+    }
+    
+    .play-button:hover {
+      background-color: #ff479f;
+    }
+    
+    .dpad {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
+      width: 120px;
+      height: 120px;
+      margin-right: 20px;
+    }
+    
+    .dpad-button {
+      background-color: #ff69b4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      color: white;
+      font-weight: bold;
+      text-shadow: 1px 1px 0 #ff1493;
+      border: 2px solid white;
+    }
+    
+    .dpad-up {
+      grid-column: 2;
+      grid-row: 1;
+      border-radius: 5px 5px 0 0;
+    }
+    
+    .dpad-left {
+      grid-column: 1;
+      grid-row: 2;
+      border-radius: 5px 0 0 5px;
+    }
+    
+    .dpad-center {
+      grid-column: 2;
+      grid-row: 2;
+      background-color: #ff8dc6;
+      border: 2px solid white;
+    }
+    
+    .dpad-right {
+      grid-column: 3;
+      grid-row: 2;
+      border-radius: 0 5px 5px 0;
+    }
+    
+    .dpad-down {
+      grid-column: 2;
+      grid-row: 3;
+      border-radius: 0 0 5px 5px;
+    }
+    
+    .controller {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      gap: 20px;
+    }
+    
+    /* Cartridge styles removed */
+    
+    .loading-text {
+      color: #ff00ff;
+      font-size: 24px;
+      font-family: 'Courier New', monospace;
+      position: absolute;
+      display: none;
+      animation: loadingColors 1s infinite;
+      text-shadow: 2px 2px 0 #800080;
+    }
+    
+    @keyframes loadingColors {
+      0% { color: #ff00ff; }
+      33% { color: #00ffff; }
+      66% { color: #ffff00; }
+      100% { color: #ff00ff; }
+    }
+    
+    .c-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .c-row {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .c-button {
+      width: 30px;
+      height: 30px;
+      background-color: #ffff00;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 10px;
+      cursor: pointer;
+      color: #000;
+      font-weight: bold;
+      box-shadow: 0 3px 0 #b2b200, 0 0 5px rgba(255, 255, 0, 0.7);
+      border: 2px solid white;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .scanlines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.2),
+        rgba(0, 0, 0, 0.2) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      pointer-events: none;
+      z-index: 10;
+    }
+    
+    .crt-effect {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        rgba(0, 0, 0, 0.2) 80%,
+        rgba(0, 0, 0, 0.4) 100%
+      );
+      pointer-events: none;
+      z-index: 11;
+      border-radius: 10px;
+    }
+    
+    .glitch-text {
+      position: relative;
+      animation: glitch 3s infinite;
+    }
+    
+    @keyframes glitch {
+      0%, 90%, 100% { transform: translate(0); }
+      92% { transform: translate(-3px, 2px); }
+      94% { transform: translate(5px, -2px); }
+      96% { transform: translate(-5px, 1px); }
+      98% { transform: translate(3px, -2px); }
+    }
+    
+    .volume-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 5px;
+      z-index: 20;
+    }
+    
+    .volume-button {
+      width: 30px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 14px;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    .music-info {
+      position: absolute;
+      bottom: 5px;
+      left: 10px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.7);
+      text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+      z-index: 20;
+    }
+    
+    @media (max-width: 600px) {
+      .controller {
+        flex-direction: column;
+      }
+      
+      .dpad {
+        margin-right: 0;
+        margin-bottom: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Cartridge removed as requested -->
+    
+    <div class="n64-console">
+      <div class="console-top">
+        <div class="logo">SUPER N64</div>
+        <div class="power-button" id="power-button"></div>
+      </div>
+      
+      <div class="screen">
+        <div class="scanlines"></div>
+        <div class="crt-effect"></div>
+        <div class="volume-controls">
+          <div class="volume-button" id="mute-button">🔊</div>
+        </div>
+        <div class="music-info">BGM: Retro Game Music</div>
+        <div class="start-message glitch-text" id="start-message">POWER ON AND PRESS START</div>
+        <div class="loading-text" id="loading-text">LOADING...</div>
+        <div class="video-container">
+          <video id="game-video" controls>
+            <!-- Replace this source with your actual video file path -->
+            <source src="startup.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+      
+      <div class="controller">
+        <div class="dpad">
+          <div class="dpad-button dpad-up">↑</div>
+          <div class="dpad-button dpad-left">←</div>
+          <div class="dpad-button dpad-center"></div>
+          <div class="dpad-button dpad-right">→</div>
+          <div class="dpad-button dpad-down">↓</div>
+        </div>
+        
+        <div class="controls">
+          <div class="control-button" id="a-button">A</div>
+          <div class="control-button" id="b-button">B</div>
+          <div class="control-button play-button" id="play-button">START</div>
+        </div>
+        
+        <div class="c-buttons">
+          <div class="c-row">
+            <div class="c-button">C↑</div>
+          </div>
+          <div class="c-row">
+            <div class="c-button">C←</div>
+            <div class="c-button">C→</div>
+          </div>
+          <div class="c-row">
+            <div class="c-button">C↓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Using a better audio solution with some actual 8-bit music -->
+  <audio id="background-music" loop>
+    <!-- Replace this with your actual music file path -->
+    <source src="retro-music.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+  
+  <script>
+    // DOM elements
+    const cartridge = document.getElementById('cartridge');
+    const powerButton = document.getElementById('power-button');
+    const playButton = document.getElementById('play-button');
+    const gameVideo = document.getElementById('game-video');
+    const startMessage = document.getElementById('start-message');
+    const loadingText = document.getElementById('loading-text');
+    const backgroundMusic = document.getElementById('background-music');
+    const muteButton = document.getElementById('mute-button');
+    
+    // Game state
+    let isPowerOn = false;
+    let isCartridgeInserted = false;
+    let isMuted = false;
+    
+    // We'll start music only when play button is pressed, not on page load
+    
+    // Mute button functionality
+    muteButton.addEventListener('click', () => {
+      isMuted = !isMuted;
+      if (isMuted) {
+        // Stop either HTML audio or generated music
+        backgroundMusic.pause();
+        if (window.musicController) {
+          window.musicController.stop();
+        }
+        muteButton.textContent = '🔇';
+      } else {
+        // Resume appropriate audio
+        if (window.musicController) {
+          window.musicController.start();
+        } else {
+          backgroundMusic.play().catch(e => {
+            generateAndPlayMusic();
+          });
+        }
+        muteButton.textContent = '🔊';
+      }
+    });
+    
+    // Create ChipTune-like sounds
+    function createOscillator(frequency, duration, type = 'square') {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.type = type;
+      oscillator.frequency.value = frequency;
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + duration);
+    }
+    
+    function playBeep() {
+      createOscillator(440, 0.1);
+    }
+    
+    function playStartSound() {
+      // Play a sequence of tones for a startup sound
+      createOscillator(523.25, 0.1); // C5
+      setTimeout(() => createOscillator(659.25, 0.1), 100); // E5
+      setTimeout(() => createOscillator(783.99, 0.1), 200); // G5
+      setTimeout(() => createOscillator(1046.50, 0.2), 300); // C6
+    }
+    
+    // This improved function generates more complete background music
+    function generateAndPlayMusic() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Create more complex 8-bit music
+      let musicIsPlaying = true;
+      let mainOscillator = null;
+      let bassOscillator = null;
+      
+      // Main melody - classic retro game progression
+      const melodyNotes = [
+        { note: 523.25, duration: 0.2 }, // C5
+        { note: 587.33, duration: 0.2 }, // D5
+        { note: 659.25, duration: 0.2 }, // E5
+        { note: 698.46, duration: 0.2 }, // F5
+        { note: 783.99, duration: 0.4 }, // G5
+        { note: 659.25, duration: 0.2 }, // E5
+        { note: 587.33, duration: 0.2 }, // D5
+        { note: 523.25, duration: 0.4 }, // C5
+        { note: 587.33, duration: 0.2 }, // D5
+        { note: 659.25, duration: 0.2 }, // E5
+        { note: 523.25, duration: 0.4 }, // C5
+      ];
+      
+      // Bass line
+      const bassNotes = [
+        { note: 261.63, duration: 0.4 }, // C3
+        { note: 196.00, duration: 0.4 }, // G2
+        { note: 220.00, duration: 0.4 }, // A2
+        { note: 261.63, duration: 0.4 }, // C3
+      ];
+      
+      let melodyIndex = 0;
+      let bassIndex = 0;
+      
+      function playMelody() {
+        if (!musicIsPlaying) return;
+        
+        const currentNote = melodyNotes[melodyIndex];
+        
+        // Create oscillator for melody
+        mainOscillator = audioContext.createOscillator();
+        mainOscillator.type = 'square';
+        mainOscillator.frequency.value = currentNote.note;
+        
+        // Create gain node for volume envelope
+        const gainNode = audioContext.createGain();
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + currentNote.duration * 0.9);
+        
+        // Connect and start
+        mainOscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        mainOscillator.start();
+        mainOscillator.stop(audioContext.currentTime + currentNote.duration);
+        
+        // Move to next note
+        melodyIndex = (melodyIndex + 1) % melodyNotes.length;
+        
+        // Schedule next note
+        setTimeout(playMelody, currentNote.duration * 1000);
+      }
+      
+      function playBass() {
+        if (!musicIsPlaying) return;
+        
+        const currentBass = bassNotes[bassIndex];
+        
+        // Create oscillator for bass
+        bassOscillator = audioContext.createOscillator();
+        bassOscillator.type = 'triangle';
+        bassOscillator.frequency.value = currentBass.note;
+        
+        // Create gain node
+        const gainNode = audioContext.createGain();
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.05, audioContext.currentTime + currentBass.duration * 0.9);
+        
+        // Connect and start
+        bassOscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        bassOscillator.start();
+        bassOscillator.stop(audioContext.currentTime + currentBass.duration);
+        
+        // Move to next note
+        bassIndex = (bassIndex + 1) % bassNotes.length;
+        
+        // Schedule next bass note
+        setTimeout(playBass, currentBass.duration * 1000);
+      }
+      
+      // Start both parts
+      playMelody();
+      playBass();
+      
+      // Make our music controller global so we can access it elsewhere
+      window.musicController = {
+        stop: function() {
+          musicIsPlaying = false;
+          if (mainOscillator) {
+            try {
+              mainOscillator.stop();
+            } catch (e) {}
+          }
+          if (bassOscillator) {
+            try {
+              bassOscillator.stop();
+            } catch (e) {}
+          }
+        },
+        start: function() {
+          if (!musicIsPlaying) {
+            musicIsPlaying = true;
+            playMelody();
+            playBass();
+          }
+        }
+      };
+    }
+    
+    // No cartridge needed - it's always inserted
+    isCartridgeInserted = true;
+    cartridge.classList.add('cartridge-inserted');
+    startMessage.textContent = "POWER ON AND PRESS START";
+    startMessage.style.color = "#00ff9f";
+    
+    // Power button
+    powerButton.addEventListener('click', () => {
+      playBeep();
+      isPowerOn = !isPowerOn;
+      
+      if (isPowerOn) {
+        powerButton.style.boxShadow = '0 0 15px rgba(255, 20, 147, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.9)';
+        if (isCartridgeInserted) {
+          startMessage.textContent = "PRESS START TO PLAY";
+          startMessage.style.color = "#ff00ff";
+        } else {
+          startMessage.textContent = "INSERT CARTRIDGE";
+          startMessage.style.color = "#ff5555";
+        }
+      } else {
+        powerButton.style.boxShadow = '0 0 10px rgba(255, 0, 0, 0.7), inset 0 0 5px rgba(255, 255, 255, 0.7)';
+        resetConsole();
+        startMessage.textContent = "POWER OFF";
+        startMessage.style.color = "#ff5555";
+      }
+    });
+    
+    // Play button
+    playButton.addEventListener('click', () => {
+      if (isPowerOn && isCartridgeInserted) {
+        playStartSound();
+        startMessage.style.display = 'none';
+        loadingText.style.display = 'block';
+        
+        // Start background music
+        backgroundMusic.volume = 0.3;
+        backgroundMusic.play().catch(error => {
+          console.log("Music play failed, falling back to generated music");
+          generateAndPlayMusic();
+        });
+        
+        // Simulate loading
+        setTimeout(() => {
+          loadingText.style.display = 'none';
+          gameVideo.style.display = 'block';
+          gameVideo.play();
+          
+          // Video ended event
+          gameVideo.addEventListener('ended', () => {
+            resetConsole();
+            startMessage.textContent = "GAME OVER - PRESS START TO PLAY AGAIN";
+            startMessage.style.color = "#00ff9f";
+            
+            // Stop music when video ends
+            backgroundMusic.pause();
+            if (window.musicController) {
+              window.musicController.stop();
+            }
+          });
+        }, 2000);
+      } else if (!isPowerOn) {
+        playBeep();
+        startMessage.textContent = "PLEASE POWER ON FIRST";
+        startMessage.style.color = "#ff5555";
+        // Add shake animation
+        startMessage.style.animation = "glitch 0.5s";
+        setTimeout(() => {
+          startMessage.style.animation = "blink 1s infinite";
+        }, 500);
+      }
+      }
+    });
+    
+    // Reset console
+    function resetConsole() {
+      gameVideo.style.display = 'none';
+      gameVideo.pause();
+      gameVideo.currentTime = 0;
+      startMessage.style.display = 'block';
+      loadingText.style.display = 'none';
+    }
+    
+    // Video controls 
+    gameVideo.addEventListener('play', () => {
+      // If the user manually plays the video
+      backgroundMusic.pause();
+      if (window.musicController) {
+        window.musicController.stop();
+      }
+    });
+    
+    // Add click effects to controller buttons
+    const controlButtons = document.querySelectorAll('.control-button, .dpad-button, .c-button');
+    controlButtons.forEach(button => {
+      button.addEventListener('mousedown', () => {
+        playBeep();
+        button.style.transform = 'scale(0.95)';
+      });
+      
+      button.addEventListener('mouseup', () => {
+        button.style.transform = 'scale(1)';
+      });
+      
+      button.addEventListener('mouseleave', () => {
+        button.style.transform = 'scale(1)';
+      });
+    });
+    
+    // Add random glitch effect
+    setInterval(() => {
+      if (Math.random() > 0.95) {
+        document.querySelector('.screen').style.filter = `hue-rotate(${Math.random() * 360}deg)`;
+        setTimeout(() => {
+          document.querySelector('.screen').style.filter = 'none';
+        }, 100);
+      }
+    }, 5000);
+  </script>
+</body>
+</html>
