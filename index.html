@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+      if (isPowerOn && isCartridgeInserted) {<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -389,9 +389,12 @@
         <div class="loading-text" id="loading-text">LOADING...</div>
         <div class="video-container">
           <video id="game-video" controls>
-            <!-- Cloudinary video link -->
+            <!-- Cloudinary video link - added multiple sources to try different formats -->
             <source src="https://asset.cloudinary.com/dchc7oykk/3af332b7149087c094d9383d7c522e25" type="video/mp4">
-            Your browser does not support the video tag.
+            <source src="https://res.cloudinary.com/dchc7oykk/video/upload/3af332b7149087c094d9383d7c522e25" type="video/mp4">
+            <source src="https://res.cloudinary.com/dchc7oykk/video/upload/v1/3af332b7149087c094d9383d7c522e25" type="video/mp4">
+            <!-- Fallback message -->
+            Your browser does not support the video tag or the video URL might be incorrect.
           </video>
         </div>
       </div>
@@ -656,7 +659,10 @@
     
     // Play button
     playButton.addEventListener('click', () => {
-      if (isPowerOn && isCartridgeInserted) {
+      // Add console logs to debug
+      console.log("START button pressed");
+      console.log("Power status:", isPowerOn);
+      console.log("Cartridge status:", isCartridgeInserted);
         playStartSound();
         startMessage.style.display = 'none';
         loadingText.style.display = 'block';
@@ -672,7 +678,19 @@
         setTimeout(() => {
           loadingText.style.display = 'none';
           gameVideo.style.display = 'block';
-          gameVideo.play();
+          // Try multiple ways to play the video
+          try {
+            gameVideo.play().catch(error => {
+              console.error("Video play failed with error:", error);
+              // Sometimes we need to make video visible first
+              gameVideo.style.display = 'block';
+              setTimeout(() => {
+                gameVideo.play().catch(e => console.error("Second attempt failed:", e));
+              }, 500);
+            });
+          } catch (error) {
+            console.error("Error playing video:", error);
+          }
           
           // Video ended event
           gameVideo.addEventListener('ended', () => {
@@ -709,12 +727,18 @@
       loadingText.style.display = 'none';
     }
     
-    // Video controls 
-    gameVideo.addEventListener('play', () => {
-      // If the user manually plays the video
-      backgroundMusic.pause();
-      if (window.musicController) {
-        window.musicController.stop();
+    // Check if Cloudinary URL might need correction (the URL format seems unusual)
+    const cloudinaryUrl = "https://asset.cloudinary.com/dchc7oykk/3af332b7149087c094d9383d7c522e25";
+    // Alternative URL formats to try if the main one doesn't work
+    const alternativeUrl = "https://res.cloudinary.com/dchc7oykk/video/upload/3af332b7149087c094d9383d7c522e25";
+    
+    // Try both URLs
+    gameVideo.addEventListener('error', () => {
+      console.log("Video error with primary URL, trying alternative...");
+      const videoSource = gameVideo.querySelector('source');
+      if (videoSource.src === cloudinaryUrl) {
+        videoSource.src = alternativeUrl;
+        gameVideo.load();
       }
     });
     
